@@ -1,0 +1,27 @@
+.App {
+  text-align: center;
+}
+
+.wrapper {
+  width: 900px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.input-data {
+  width: 100%;
+}
+
+.nest-list {
+  height: 400px;
+  overflow-y: auto;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
