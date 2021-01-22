@@ -135,7 +135,15 @@ function App() {
         <div>
           <h4>Результат</h4>
           <p>
-            Можно скопировать или <a>скачать в виде файла</a>
+            Можно скопировать или{' '}
+            <a
+              href={`data:text/plain;charset=UTF-8,${encodeURIComponent(
+                utils.resultToString(result)
+              )}`}
+              download="nest_results.txt"
+            >
+              скачать в виде файла
+            </a>
           </p>
           <textarea className="textarea-with-data" rows={5} value={utils.resultToString(result)} />
         </div>
