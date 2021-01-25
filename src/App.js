@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Chart } from 'react-google-charts';
+import AnyChart from 'anychart-react';
+import anychart from 'anychart';
 import * as utils from './utils';
 import './App.css';
 
@@ -7,22 +8,35 @@ function App() {
   const [nestDataText, setNestDataText] = useState('');
   const [nestData, setNestData] = useState([]);
   const [inputFormat, setInputFormat] = useState(utils.INPUT_FORMAT_NUMBER);
-  const [withHeader, setWithHeader] = useState(false);
+  const [withHeader, setWithHeader] = useState(true);
   const [firstCount, setFirstCount] = useState(3);
-  const [result, setResult] = useState([]);
+  const [selectedNest, setSelectedNest] = useState(0);
+
+  const anyChartDistances = anychart.line();
+  const anyChartMap = anychart.bubble();
+  anyChartMap.minBubbleSize('0.5%');
+  anyChartMap.maxBubbleSize('5%');
 
   useEffect(() => {
-    setNestData(utils.parseNestData(nestDataText, inputFormat, withHeader));
-  }, [nestDataText, inputFormat, withHeader]);
-
-  function calculate() {
+    const nestData = utils.parseNestData(nestDataText, inputFormat, withHeader);
     for (const currentNest of nestData) {
       const distances = utils.getSortedDistancesToNeighbors(currentNest, nestData);
       const deltaDistances = utils.getDeltaDistancesToNeighbors(distances);
       currentNest.distances = distances;
       currentNest.deltaDistances = deltaDistances;
     }
+    setNestData(nestData);
+  }, [nestDataText, inputFormat, withHeader]);
 
+  useEffect(() => {
+    setDistancesGraphData(selectedNest);
+  }, [nestData, selectedNest]);
+
+  useEffect(() => {
+    setMapGraphData(nestData);
+  }, [nestData]);
+
+  function calculate() {
     for (const currentNest of nestData) {
       currentNest.isAccepted = utils.isNestAccepted(currentNest, nestData, firstCount);
       if (currentNest.isAccepted) {
@@ -32,7 +46,42 @@ function App() {
       }
     }
 
-    setResult([...nestData]);
+    setNestData([...nestData]);
+  }
+
+  function setDistancesGraphData(selectedNest) {
+    console.log('setDistancesGraphData', anyChartDistances);
+    if (!nestData[selectedNest]) return;
+
+    const chartData = [];
+    for (let i = 0; i < nestData[selectedNest].distances.length; i++) {
+      chartData.push([
+        i,
+        nestData[selectedNest].distances[i],
+        nestData[selectedNest].deltaDistances[i]
+      ]);
+    }
+    const dataSet = anychart.data.set(chartData);
+    const seriesData_1 = dataSet.mapAs({ x: 0, value: 1 });
+    const seriesData_2 = dataSet.mapAs({ x: 0, value: 2 });
+    anyChartDistances.line(seriesData_1);
+    anyChartDistances.line(seriesData_2);
+  }
+
+  function setMapGraphData(nests) {
+    if (!nests || !nests.length) return;
+
+    const accepted = [],
+      notAccepted = [];
+    for (const nest of nests) {
+      if (nest.isAccepted) {
+        accepted.push([nest.x, nest.y, nest.r]);
+      } else {
+        notAccepted.push([nest.x, nest.y, 0]);
+      }
+    }
+    anyChartMap.bubble(accepted);
+    anyChartMap.bubble(notAccepted);
   }
 
   return (
@@ -85,12 +134,27 @@ function App() {
         </div>
         <div>
           <h4>Скопируйте сюда координаты гнёзд:</h4>
-          <textarea
-            rows={5}
-            className="textarea-with-data"
-            value={nestDataText}
-            onChange={e => setNestDataText(e.target.value)}
-          />
+          <div className="input-coordinates-block">
+            <div className="input-textarea">
+              <textarea
+                rows={10}
+                className="textarea-with-data"
+                value={nestDataText}
+                onChange={e => setNestDataText(e.target.value)}
+              />
+            </div>
+            <div className="nest-list">
+              <ul>
+                {nestData.map(nest => (
+                  <li key={nest.id}>
+                    <b>{nest.title ? nest.title : nest.id}</b>&nbsp;
+                    {nest.date && nest.date}&nbsp;
+                    {nest.x} {nest.y}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
         <div>
           <label>
@@ -106,27 +170,28 @@ function App() {
             </select>
           </label>
         </div>
-        <div>
-          <h4>Гнёзда:</h4>
-          <ul className="nest-list">
-            {nestData.map(nest => (
-              // eslint-disable-next-line react/jsx-key
-              <li>
-                <b>{nest.title ? nest.title : nest.id}</b>&nbsp;
-                {nest.date && nest.date}&nbsp;
-                {nest.x} {nest.y}
-              </li>
-            ))}
-          </ul>
-          <Chart
-            width={'600px'}
-            height={'400px'}
-            chartType="ScatterChart"
-            loader={<div>Loading Chart</div>}
-            data={[['x', 'y'], ...nestData.map(nest => [nest.x, nest.y])]}
-            options={{
-              legend: 'none'
-            }}
+        <div className="distances">
+          <h4>Расстояния до соседей:</h4>
+          <input
+            type="range"
+            min="0"
+            max={nestData.length - 1}
+            value={selectedNest}
+            onChange={e => setSelectedNest(e.target.value)}
+          />
+          <button onClick={() => selectedNest > 0 && setSelectedNest(selectedNest - 1)}>
+            &lt;
+          </button>
+          <button
+            onClick={() => selectedNest < nestData.length - 1 && setSelectedNest(selectedNest + 1)}
+          >
+            &gt;
+          </button>
+          <AnyChart
+            id="distances"
+            title={`Расстояния до соседей гнезда ${nestData[selectedNest]?.title}`}
+            instance={anyChartDistances}
+            height={600}
           />
         </div>
         <div>
@@ -138,14 +203,26 @@ function App() {
             Можно скопировать или{' '}
             <a
               href={`data:text/plain;charset=UTF-8,${encodeURIComponent(
-                utils.resultToString(result)
+                utils.resultToString(nestData).replace('\n', '\r\n')
               )}`}
               download="nest_results.txt"
             >
               скачать в виде файла
             </a>
           </p>
-          <textarea className="textarea-with-data" rows={5} value={utils.resultToString(result)} />
+          <div className="results-block">
+            <div className="results-textarea">
+              <textarea
+                className="textarea-with-data"
+                rows={5}
+                value={utils.resultToString(nestData)}
+                readOnly
+              />
+            </div>
+            <div className="results-graph">
+              <AnyChart id="nest-map" instance={anyChartMap} title="Карта гнёзд" height={600} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

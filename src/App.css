@@ -12,16 +12,45 @@
   width: 100%;
 }
 
+.input-coordinates-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.input-textarea {
+  flex: 1;
+}
+
+.input-textarea textarea {
+  width: 100%;
+  height: 300px;
+}
+
 .nest-list {
+  flex: 1;
   height: 300px;
   overflow-y: auto;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.results-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.results-textarea {
+  width: 300px;
+  height: 600px;
+}
+
+.results-textarea textarea {
+  height: 600px;
+}
+
+.results-graph {
+  flex: 1;
+  height: 600px;
+}
+
+.distances input[type="range"] {
+  width: 100%;
 }

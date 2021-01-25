@@ -345,7 +345,7 @@ export function resultToString(nests) {
   for (const nest of nests) {
     resultStr += `${nest.title ? nest.title : nest.id}\t`;
     if (nest.isAccepted) {
-      resultStr += `${nest.r}\t${nest.neighborsCount}`;
+      resultStr += `${nest.r.toFixed(3)}\t${nest.neighborsCount}`;
     } else {
       resultStr += `NAN\t0`;
     }
