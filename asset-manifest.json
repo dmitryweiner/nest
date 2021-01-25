@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.css": "/nest/static/css/main.ae57c2d8.chunk.css",
-    "main.js": "/nest/static/js/main.b55ffcfd.chunk.js",
-    "main.js.map": "/nest/static/js/main.b55ffcfd.chunk.js.map",
+    "main.css": "/nest/static/css/main.5d0164ba.chunk.css",
+    "main.js": "/nest/static/js/main.04d8003a.chunk.js",
+    "main.js.map": "/nest/static/js/main.04d8003a.chunk.js.map",
     "runtime-main.js": "/nest/static/js/runtime-main.54fd9329.js",
     "runtime-main.js.map": "/nest/static/js/runtime-main.54fd9329.js.map",
-    "static/js/2.b7531026.chunk.js": "/nest/static/js/2.b7531026.chunk.js",
-    "static/js/2.b7531026.chunk.js.map": "/nest/static/js/2.b7531026.chunk.js.map",
+    "static/js/2.fefa54c5.chunk.js": "/nest/static/js/2.fefa54c5.chunk.js",
+    "static/js/2.fefa54c5.chunk.js.map": "/nest/static/js/2.fefa54c5.chunk.js.map",
     "index.html": "/nest/index.html",
-    "static/css/main.ae57c2d8.chunk.css.map": "/nest/static/css/main.ae57c2d8.chunk.css.map",
-    "static/js/2.b7531026.chunk.js.LICENSE.txt": "/nest/static/js/2.b7531026.chunk.js.LICENSE.txt"
+    "static/css/main.5d0164ba.chunk.css.map": "/nest/static/css/main.5d0164ba.chunk.css.map",
+    "static/js/2.fefa54c5.chunk.js.LICENSE.txt": "/nest/static/js/2.fefa54c5.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.54fd9329.js",
-    "static/js/2.b7531026.chunk.js",
-    "static/css/main.ae57c2d8.chunk.css",
-    "static/js/main.b55ffcfd.chunk.js"
+    "static/js/2.fefa54c5.chunk.js",
+    "static/css/main.5d0164ba.chunk.css",
+    "static/js/main.04d8003a.chunk.js"
   ]
 }
