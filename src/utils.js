@@ -353,3 +353,17 @@ export function resultToString(nests) {
   }
   return resultStr;
 }
+
+/**
+ * Расчёт расстояний и дельт, сохранение их в объекте гнезда
+ *
+ * @param {Nest[]} nests
+ */
+export function setDistancesAndDeltas(nests) {
+  for (const currentNest of nests) {
+    const distances = getSortedDistancesToNeighbors(currentNest, nests);
+    const deltaDistances = getDeltaDistancesToNeighbors(distances);
+    currentNest.distances = distances;
+    currentNest.deltaDistances = deltaDistances;
+  }
+}

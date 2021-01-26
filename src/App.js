@@ -19,12 +19,7 @@ function App() {
 
   useEffect(() => {
     const nestData = utils.parseNestData(nestDataText, inputFormat, withHeader);
-    for (const currentNest of nestData) {
-      const distances = utils.getSortedDistancesToNeighbors(currentNest, nestData);
-      const deltaDistances = utils.getDeltaDistancesToNeighbors(distances);
-      currentNest.distances = distances;
-      currentNest.deltaDistances = deltaDistances;
-    }
+    utils.setDistancesAndDeltas(nestData);
     setNestData(nestData);
   }, [nestDataText, inputFormat, withHeader]);
 
@@ -50,7 +45,6 @@ function App() {
   }
 
   function setDistancesGraphData(selectedNest) {
-    console.log('setDistancesGraphData', anyChartDistances);
     if (!nestData[selectedNest]) return;
 
     const chartData = [];
