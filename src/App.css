@@ -44,11 +44,20 @@
 
 .results-textarea textarea {
   height: 600px;
+  width: calc(100% - 10px);
 }
 
 .results-graph {
   flex: 1;
   height: 600px;
+}
+
+.results-graph input[type="range"] {
+  width: 100%;
+}
+
+.distances {
+  height: 800px;
 }
 
 .distances input[type="range"] {

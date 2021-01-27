@@ -19,9 +19,9 @@ export function parseString(string, inputFormat) {
     date: null,
     distances: [],
     deltaDistances: [],
-    neighborsCount: 0,
-    r: 0,
-    isAccepted: false
+    neighborsCount: [0],
+    r: [0],
+    isAccepted: [false]
   };
   switch (inputFormat) {
     case INPUT_FORMAT_COORDINATES:
@@ -209,9 +209,10 @@ export function getDeltaDistancesToNeighbors(distances) {
  * @param {Nest} currentNest
  * @param {Nest[]} nests
  * @param {number} firstCount
+ * @param {number} [currentDayIndex]
  * @returns {boolean}
  */
-export function isNestAccepted(currentNest, nests, firstCount) {
+export function isNestAccepted(currentNest, nests, firstCount, currentDayIndex = 0) {
   /*
     procedure SelectNeibs(List_in: TList);
     var
@@ -265,14 +266,19 @@ export function isNestAccepted(currentNest, nests, firstCount) {
     if (nest.id === currentNest.id) continue;
 
     for (let i = 0; i < firstCount; i++) {
-      r_av += nest.distances[i];
+      if (nest.distances[currentDayIndex]) {
+        // TODO: что-то здесь странное
+        r_av += nest.distances[currentDayIndex][i];
+      }
     }
 
     r_av = r_av / firstCount;
     r_avav += r_av;
   }
   r_avav = r_avav / (nests.length - 1);
-  return r_avav >= currentNest.distances[0];
+  return (
+    currentNest.distances[currentDayIndex] && r_avav >= currentNest.distances[currentDayIndex][0]
+  );
 }
 
 /**
@@ -285,9 +291,10 @@ export function isNestAccepted(currentNest, nests, firstCount) {
  * 5. Среднее расстояние: сумма расстояний до соседей / число соседей.
  *
  * @param {Nest} nest
+ * @param {number} [currentDayIndex]
  * @returns {{r: number, neighborsCount: number}}
  */
-export function calculateR(nest) {
+export function calculateR(nest, currentDayIndex = 0) {
   /*
       max := 0;
       i_max := 1;
@@ -320,37 +327,83 @@ export function calculateR(nest) {
   let loop_limit;
   let r = 0;
 
-  if (nest.deltaDistances.length > 6) {
+  if (nest.deltaDistances[currentDayIndex].length > 6) {
     loop_limit = 5; //6 neibors
   } else {
-    loop_limit = nest.deltaDistances.length - 1; //if less than 6
+    loop_limit = nest.deltaDistances[currentDayIndex].length - 1; //if less than 6
   }
 
   for (let i = 1; i <= loop_limit; i++) {
-    if (nest.deltaDistances[i] > maxDelta) {
-      maxDelta = nest.deltaDistances[i];
+    if (nest.deltaDistances[currentDayIndex][i] > maxDelta) {
+      maxDelta = nest.deltaDistances[currentDayIndex][i];
       i_max = i;
     }
   }
 
   for (let i = 0; i <= i_max; i++) {
-    r += nest.distances[i];
+    r += nest.distances[currentDayIndex][i];
   }
   r = r / (i_max + 1);
   return { r, neighborsCount: i_max + 1 };
 }
 
-export function resultToString(nests) {
-  let resultStr = 'Number\tR\tNeib\n';
-  for (const nest of nests) {
-    resultStr += `${nest.title ? nest.title : nest.id}\t`;
-    if (nest.isAccepted) {
-      resultStr += `${nest.r.toFixed(3)}\t${nest.neighborsCount}`;
-    } else {
-      resultStr += `NAN\t0`;
+export function calculateRforSpecificDay(nests, firstCount, dateIndex = 0) {
+  for (const currentNest of nests) {
+    currentNest.isAccepted[dateIndex] = isNestAccepted(currentNest, nests, firstCount, dateIndex);
+    if (currentNest.isAccepted[dateIndex]) {
+      const { r, neighborsCount } = calculateR(currentNest);
+      currentNest.r[dateIndex] = r;
+      currentNest.neighborsCount[dateIndex] = neighborsCount;
     }
-    resultStr += `\n`;
   }
+}
+
+function getResultForNest(nest, dayIndex = 0) {
+  let resultStr = `${nest.title ? nest.title : nest.id}\t`;
+  if (nest.isAccepted[dayIndex]) {
+    resultStr += `${nest.r[dayIndex] ? nest.r[dayIndex].toFixed(3) : ''}\t${
+      nest.neighborsCount[dayIndex] ? nest.neighborsCount[dayIndex] : ''
+    }`;
+  } else {
+    resultStr += `NAN\t0`;
+  }
+  resultStr += `\n`;
+  return resultStr;
+}
+
+export function getResultByDate(nests, dateIndex) {
+  const header = 'Number\tR\tNeib\n';
+  let resultStr = '';
+
+  resultStr = `${header}`;
+  for (const nest of nests) {
+    resultStr += getResultForNest(nest, dateIndex);
+  }
+
+  return resultStr;
+}
+
+export function resultToString(nests, inputFormat, dates) {
+  let resultStr = '';
+
+  switch (inputFormat) {
+    case INPUT_FORMAT_NUMBER:
+    case INPUT_FORMAT_COORDINATES: {
+      resultStr = getResultByDate(nests, 0);
+      break;
+    }
+    case INPUT_FORMAT_DATE: {
+      for (let currentDateIndex = 0; currentDateIndex < dates.length; currentDateIndex++) {
+        resultStr += `${dates[currentDateIndex]}\n`;
+        resultStr += getResultByDate(
+          getAllNestsForSpecificDay(nests, currentDateIndex),
+          currentDateIndex
+        );
+      }
+      break;
+    }
+  }
+
   return resultStr;
 }
 
@@ -358,12 +411,53 @@ export function resultToString(nests) {
  * Расчёт расстояний и дельт, сохранение их в объекте гнезда
  *
  * @param {Nest[]} nests
+ * @param {number} [currentDayIndex]
  */
-export function setDistancesAndDeltas(nests) {
+export function setDistancesAndDeltas(nests, currentDayIndex = 0) {
   for (const currentNest of nests) {
     const distances = getSortedDistancesToNeighbors(currentNest, nests);
     const deltaDistances = getDeltaDistancesToNeighbors(distances);
-    currentNest.distances = distances;
-    currentNest.deltaDistances = deltaDistances;
+    currentNest.distances[currentDayIndex] = distances;
+    currentNest.deltaDistances[currentDayIndex] = deltaDistances;
   }
+}
+
+function parseDate(dateStr) {
+  const parts = dateStr.split('.');
+  return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+}
+
+/**
+ * Возвращает массив дат откладки гнёзд, сортированный по возрастанию
+ *
+ * @param {Nest[]} nests
+ * @return {string[]}
+ */
+export function getAllDatesSorted(nests) {
+  const result = [...new Set(nests.map(nest => nest.date))];
+  result.sort((a, b) => parseDate(a) - parseDate(b));
+  return result;
+}
+
+/**
+ * Установить номер дня у гнезда
+ *
+ * @param {Nest[]} nests
+ * @param {string[]} dates
+ */
+export function setDateIndex(nests, dates) {
+  for (const currentNest of nests) {
+    currentNest.dateIndex = dates.indexOf(currentNest.date);
+  }
+}
+
+/**
+ * Отфильтровать только те гнёзда, которые были в этот день и раньше
+ *
+ * @param {Nest[]} nests
+ * @param {number} dateIndex
+ * @return {Nest[]}
+ */
+export function getAllNestsForSpecificDay(nests, dateIndex) {
+  return nests.filter(nest => nest.dateIndex <= dateIndex);
 }

@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import AnyChart from 'anychart-react';
 import anychart from 'anychart';
 import * as utils from './utils';
+import nestWithNumbersText from './demo-data/coords-with-numbers';
+import nestWithDatesText from './demo-data/coords-with-dates';
 import './App.css';
 
 function App() {
   const [nestDataText, setNestDataText] = useState('');
   const [nestData, setNestData] = useState([]);
+  const [dates, setDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(0);
   const [inputFormat, setInputFormat] = useState(utils.INPUT_FORMAT_NUMBER);
   const [withHeader, setWithHeader] = useState(true);
   const [firstCount, setFirstCount] = useState(3);
@@ -19,40 +23,66 @@ function App() {
 
   useEffect(() => {
     const nestData = utils.parseNestData(nestDataText, inputFormat, withHeader);
-    utils.setDistancesAndDeltas(nestData);
+    switch (inputFormat) {
+      case utils.INPUT_FORMAT_NUMBER:
+      case utils.INPUT_FORMAT_COORDINATES:
+        utils.setDistancesAndDeltas(nestData);
+        break;
+      case utils.INPUT_FORMAT_DATE: {
+        const dates = utils.getAllDatesSorted(nestData);
+        setDates(dates);
+        utils.setDateIndex(nestData, dates);
+        for (let currentDateIndex = 0; currentDateIndex < dates.length; currentDateIndex++) {
+          utils.setDistancesAndDeltas(
+            utils.getAllNestsForSpecificDay(nestData, currentDateIndex),
+            currentDateIndex
+          );
+        }
+        break;
+      }
+    }
     setNestData(nestData);
+    setSelectedNest(0);
+    setSelectedDate(0);
   }, [nestDataText, inputFormat, withHeader]);
 
   useEffect(() => {
-    setDistancesGraphData(selectedNest);
-  }, [nestData, selectedNest]);
+    setDistancesGraphData(selectedNest, selectedDate);
+  }, [nestData, selectedNest, selectedDate]);
 
   useEffect(() => {
-    setMapGraphData(nestData);
-  }, [nestData]);
+    setMapGraphData(nestData, selectedDate);
+  }, [nestData, selectedDate]);
 
   function calculate() {
-    for (const currentNest of nestData) {
-      currentNest.isAccepted = utils.isNestAccepted(currentNest, nestData, firstCount);
-      if (currentNest.isAccepted) {
-        const { r, neighborsCount } = utils.calculateR(currentNest);
-        currentNest.r = r;
-        currentNest.neighborsCount = neighborsCount;
+    switch (inputFormat) {
+      case utils.INPUT_FORMAT_NUMBER:
+      case utils.INPUT_FORMAT_COORDINATES:
+        utils.calculateRforSpecificDay(nestData, firstCount);
+        break;
+      case utils.INPUT_FORMAT_DATE: {
+        for (let currentDateIndex = 0; currentDateIndex < dates.length; currentDateIndex++) {
+          utils.calculateRforSpecificDay(
+            utils.getAllNestsForSpecificDay(nestData, currentDateIndex),
+            currentDateIndex
+          );
+        }
+        break;
       }
     }
 
     setNestData([...nestData]);
   }
 
-  function setDistancesGraphData(selectedNest) {
-    if (!nestData[selectedNest]) return;
+  function setDistancesGraphData(selectedNest, selectedDate = 0) {
+    if (!nestData[selectedNest] || !nestData[selectedNest].distances[selectedDate]) return;
 
     const chartData = [];
-    for (let i = 0; i < nestData[selectedNest].distances.length; i++) {
+    for (let i = 0; i < nestData[selectedNest].distances[selectedDate].length; i++) {
       chartData.push([
         i,
-        nestData[selectedNest].distances[i],
-        nestData[selectedNest].deltaDistances[i]
+        nestData[selectedNest].distances[selectedDate][i],
+        nestData[selectedNest].deltaDistances[selectedDate][i]
       ]);
     }
     const dataSet = anychart.data.set(chartData);
@@ -62,20 +92,32 @@ function App() {
     anyChartDistances.line(seriesData_2);
   }
 
-  function setMapGraphData(nests) {
+  function setMapGraphData(nests, selectedDate = 0) {
     if (!nests || !nests.length) return;
 
     const accepted = [],
       notAccepted = [];
-    for (const nest of nests) {
-      if (nest.isAccepted) {
-        accepted.push([nest.x, nest.y, nest.r]);
+    for (const nest of utils.getAllNestsForSpecificDay(nests, selectedDate)) {
+      if (nest.isAccepted[selectedDate]) {
+        accepted.push([nest.x, nest.y, nest.r[selectedDate]]);
       } else {
         notAccepted.push([nest.x, nest.y, 0]);
       }
     }
     anyChartMap.bubble(accepted);
     anyChartMap.bubble(notAccepted);
+  }
+
+  function setTestData(inputFormat) {
+    if (inputFormat === utils.INPUT_FORMAT_NUMBER) {
+      setNestDataText(nestWithNumbersText);
+      setInputFormat(utils.INPUT_FORMAT_NUMBER);
+      setWithHeader(true);
+    } else if (inputFormat === utils.INPUT_FORMAT_DATE) {
+      setNestDataText(nestWithDatesText);
+      setInputFormat(utils.INPUT_FORMAT_DATE);
+      setWithHeader(false);
+    }
   }
 
   return (
@@ -128,6 +170,11 @@ function App() {
         </div>
         <div>
           <h4>Скопируйте сюда координаты гнёзд:</h4>
+          <p>
+            Загрузить тестовые данные
+            <button onClick={() => setTestData(utils.INPUT_FORMAT_NUMBER)}>с номерами</button>
+            <button onClick={() => setTestData(utils.INPUT_FORMAT_DATE)}>с датами</button>
+          </p>
           <div className="input-coordinates-block">
             <div className="input-textarea">
               <textarea
@@ -166,13 +213,30 @@ function App() {
         </div>
         <div className="distances">
           <h4>Расстояния до соседей:</h4>
-          <input
-            type="range"
-            min="0"
-            max={nestData.length - 1}
-            value={selectedNest}
-            onChange={e => setSelectedNest(e.target.value)}
-          />
+          {inputFormat === utils.INPUT_FORMAT_DATE && (
+            <label>
+              Текущий день {dates[selectedDate]}
+              <br />
+              <input
+                type="range"
+                min="0"
+                max={dates.length - 1}
+                value={selectedDate}
+                onChange={e => setSelectedDate(Number(e.target.value))}
+              />
+            </label>
+          )}
+          <label>
+            Текущee гнездо {nestData[selectedNest] ? nestData[selectedNest].title : ''}
+            <br />
+            <input
+              type="range"
+              min="0"
+              max={nestData.length - 1}
+              value={selectedNest}
+              onChange={e => setSelectedNest(Number(e.target.value))}
+            />
+          </label>
           <button onClick={() => selectedNest > 0 && setSelectedNest(selectedNest - 1)}>
             &lt;
           </button>
@@ -183,7 +247,9 @@ function App() {
           </button>
           <AnyChart
             id="distances"
-            title={`Расстояния до соседей гнезда ${nestData[selectedNest]?.title}`}
+            title={`Расстояния до соседей гнезда ${
+              nestData[selectedNest] ? nestData[selectedNest].title : ''
+            }`}
             instance={anyChartDistances}
             height={600}
           />
@@ -197,7 +263,7 @@ function App() {
             Можно скопировать или{' '}
             <a
               href={`data:text/plain;charset=UTF-8,${encodeURIComponent(
-                utils.resultToString(nestData).replace('\n', '\r\n')
+                utils.resultToString(nestData, inputFormat, dates).replace('\n', '\r\n')
               )}`}
               download="nest_results.txt"
             >
@@ -209,11 +275,24 @@ function App() {
               <textarea
                 className="textarea-with-data"
                 rows={5}
-                value={utils.resultToString(nestData)}
+                value={utils.resultToString(nestData, inputFormat, dates)}
                 readOnly
               />
             </div>
             <div className="results-graph">
+              {inputFormat === utils.INPUT_FORMAT_DATE && (
+                <label>
+                  Текущий день {dates[selectedDate]}
+                  <br />
+                  <input
+                    type="range"
+                    min="0"
+                    max={dates.length - 1}
+                    value={selectedDate}
+                    onChange={e => setSelectedDate(Number(e.target.value))}
+                  />
+                </label>
+              )}
               <AnyChart id="nest-map" instance={anyChartMap} title="Карта гнёзд" height={600} />
             </div>
           </div>

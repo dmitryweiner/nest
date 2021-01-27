@@ -1,9 +1,10 @@
-import nestDataText from './demo-data/coords-with-numbers';
+import nestWithNumbersText from './demo-data/coords-with-numbers';
+import nestWithDatesText from './demo-data/coords-with-dates';
 import * as utils from './utils';
 
-describe('Utils', () => {
+describe('Calculation with numbers', () => {
   it('should parse input data', () => {
-    const nestData = utils.parseNestData(nestDataText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
     expect(nestData.length).toEqual(236);
     expect(nestData[0]).toHaveProperty('title');
     expect(nestData[0].title).toEqual('1');
@@ -21,7 +22,7 @@ describe('Utils', () => {
   });
 
   it('should calculate distances and delta', () => {
-    const nestData = utils.parseNestData(nestDataText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
     const distances = utils.getSortedDistancesToNeighbors(nestData[0], nestData);
     const deltaDistances = utils.getDeltaDistancesToNeighbors(distances);
 
@@ -36,7 +37,7 @@ describe('Utils', () => {
   });
 
   it('should test whether nest accepted or not', () => {
-    const nestData = utils.parseNestData(nestDataText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
     utils.setDistancesAndDeltas(nestData);
 
     let isAccepted = utils.isNestAccepted(nestData[0], nestData, 3);
@@ -46,7 +47,7 @@ describe('Utils', () => {
   });
 
   it('should calculate R and number of neighbors', () => {
-    const nestData = utils.parseNestData(nestDataText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
     utils.setDistancesAndDeltas(nestData);
 
     let result = utils.calculateR(nestData[0]);
@@ -56,5 +57,32 @@ describe('Utils', () => {
     result = utils.calculateR(nestData[nestData.length - 1]);
     expect(result.r).toBeCloseTo(1.103);
     expect(result.neighborsCount).toEqual(5);
+  });
+});
+
+describe('Calculation with dates', () => {
+  it('should parse input data', () => {
+    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT_DATE, false);
+    const dates = utils.getAllDatesSorted(nestData);
+    expect(dates.length).toEqual(16);
+    expect(dates[0]).toEqual('18.05.17');
+    expect(dates[dates.length - 1]).toEqual('03.06.17');
+  });
+
+  it('should set proper date index', () => {
+    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT_DATE, false);
+    const dates = utils.getAllDatesSorted(nestData);
+    utils.setDateIndex(nestData, dates);
+    expect(nestData[19].dateIndex).toEqual(0);
+    expect(nestData[65].dateIndex).toEqual(15);
+  });
+
+  it('should filter nests by date index', () => {
+    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT_DATE, false);
+    const dates = utils.getAllDatesSorted(nestData);
+    utils.setDateIndex(nestData, dates);
+
+    const selectedNests = utils.getAllNestsForSpecificDay(nestData, 2);
+    expect(selectedNests.length).toEqual(5);
   });
 });
