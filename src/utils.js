@@ -351,7 +351,7 @@ export function calculateRforSpecificDay(nests, firstCount, dateIndex = 0) {
   for (const currentNest of nests) {
     currentNest.isAccepted[dateIndex] = isNestAccepted(currentNest, nests, firstCount, dateIndex);
     if (currentNest.isAccepted[dateIndex]) {
-      const { r, neighborsCount } = calculateR(currentNest);
+      const { r, neighborsCount } = calculateR(currentNest, dateIndex);
       currentNest.r[dateIndex] = r;
       currentNest.neighborsCount[dateIndex] = neighborsCount;
     }

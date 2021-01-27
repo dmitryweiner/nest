@@ -64,6 +64,7 @@ function App() {
         for (let currentDateIndex = 0; currentDateIndex < dates.length; currentDateIndex++) {
           utils.calculateRforSpecificDay(
             utils.getAllNestsForSpecificDay(nestData, currentDateIndex),
+            firstCount,
             currentDateIndex
           );
         }
