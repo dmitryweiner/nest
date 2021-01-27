@@ -383,7 +383,7 @@ export function getResultByDate(nests, dateIndex) {
   return resultStr;
 }
 
-export function resultToString(nests, inputFormat, dates) {
+export function resultToString(nests, inputFormat) {
   let resultStr = '';
 
   switch (inputFormat) {
@@ -393,12 +393,15 @@ export function resultToString(nests, inputFormat, dates) {
       break;
     }
     case INPUT_FORMAT_DATE: {
-      for (let currentDateIndex = 0; currentDateIndex < dates.length; currentDateIndex++) {
-        resultStr += `${dates[currentDateIndex]}\n`;
-        resultStr += getResultByDate(
-          getAllNestsForSpecificDay(nests, currentDateIndex),
-          currentDateIndex
-        );
+      resultStr += `Number\tR0\tRk\n`;
+      for (const nest of nests) {
+        const notNullR = nest.r.filter(r => r > 0);
+        resultStr += `${nest.title}\t`;
+        if (notNullR.length) {
+          resultStr += `${notNullR[0].toFixed(3)}\t${notNullR[notNullR.length - 1].toFixed(3)}\n`;
+        } else {
+          resultStr += 'NAN\tNAN\n';
+        }
       }
       break;
     }

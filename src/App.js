@@ -264,7 +264,7 @@ function App() {
             Можно скопировать или{' '}
             <a
               href={`data:text/plain;charset=UTF-8,${encodeURIComponent(
-                utils.resultToString(nestData, inputFormat, dates).replace('\n', '\r\n')
+                utils.resultToString(nestData, inputFormat).replace('\n', '\r\n')
               )}`}
               download="nest_results.txt"
             >
@@ -276,7 +276,7 @@ function App() {
               <textarea
                 className="textarea-with-data"
                 rows={5}
-                value={utils.resultToString(nestData, inputFormat, dates)}
+                value={utils.resultToString(nestData, inputFormat)}
                 readOnly
               />
             </div>
