@@ -12,6 +12,14 @@
   .wrapper {
     width: 100%;
   }
+
+  .wrapper div {
+    margin-left: 10px;
+  }
+}
+
+.header {
+  text-align: center;
 }
 
 .textarea-with-data {

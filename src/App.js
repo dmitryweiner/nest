@@ -125,9 +125,11 @@ function App() {
   return (
     <div className="App">
       <div className="wrapper">
-        <h1>Nest</h1>
-        <h4>Выберите формат входных данных:</h4>
+        <div className="header">
+          <h1>Nest</h1>
+        </div>
         <div>
+          <h4>Выберите формат входных данных:</h4>
           <label>
             <input
               type="radio"
@@ -244,7 +246,7 @@ function App() {
         </div>
         <div>
           <button className="calculate-button" onClick={() => calculate()}>
-            Расчитать!
+            Рассчитать!
           </button>
         </div>
         <div>
