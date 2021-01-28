@@ -5,6 +5,7 @@ import * as utils from './utils';
 import nestWithNumbersText from './demo-data/coords-with-numbers';
 import nestWithDatesText from './demo-data/coords-with-dates';
 import './App.css';
+import RangeWithButtons from './components/RangeWithButtons';
 
 function App() {
   const [nestDataText, setNestDataText] = useState('');
@@ -215,37 +216,23 @@ function App() {
         <div className="distances">
           <h4>Расстояния до соседей:</h4>
           {inputFormat === utils.INPUT_FORMAT_DATE && (
-            <label>
-              Текущий день {dates[selectedDate]}
-              <br />
-              <input
-                type="range"
-                min="0"
-                max={dates.length - 1}
+            <>
+              <p>Текущий день {dates[selectedDate]}</p>
+              <RangeWithButtons
                 value={selectedDate}
-                onChange={e => setSelectedDate(Number(e.target.value))}
+                min={0}
+                max={dates.length - 1}
+                onChange={value => setSelectedDate(value)}
               />
-            </label>
+            </>
           )}
-          <label>
-            Текущee гнездо {nestData[selectedNest] ? nestData[selectedNest].title : ''}
-            <br />
-            <input
-              type="range"
-              min="0"
-              max={nestData.length - 1}
-              value={selectedNest}
-              onChange={e => setSelectedNest(Number(e.target.value))}
-            />
-          </label>
-          <button onClick={() => selectedNest > 0 && setSelectedNest(selectedNest - 1)}>
-            &lt;
-          </button>
-          <button
-            onClick={() => selectedNest < nestData.length - 1 && setSelectedNest(selectedNest + 1)}
-          >
-            &gt;
-          </button>
+          <p>Текущee гнездо {nestData[selectedNest] ? nestData[selectedNest].title : ''}</p>
+          <RangeWithButtons
+            value={selectedNest}
+            min={0}
+            max={nestData.length - 1}
+            onChange={value => setSelectedNest(value)}
+          />
           <AnyChart
             id="distances"
             title={`Расстояния до соседей гнезда ${
@@ -256,7 +243,9 @@ function App() {
           />
         </div>
         <div>
-          <button onClick={() => calculate()}>Расчитать!</button>
+          <button className="calculate-button" onClick={() => calculate()}>
+            Расчитать!
+          </button>
         </div>
         <div>
           <h4>Результат</h4>
@@ -282,17 +271,15 @@ function App() {
             </div>
             <div className="results-graph">
               {inputFormat === utils.INPUT_FORMAT_DATE && (
-                <label>
-                  Текущий день {dates[selectedDate]}
-                  <br />
-                  <input
-                    type="range"
-                    min="0"
-                    max={dates.length - 1}
+                <>
+                  <p>Текущий день {dates[selectedDate]}</p>
+                  <RangeWithButtons
                     value={selectedDate}
-                    onChange={e => setSelectedDate(Number(e.target.value))}
+                    min={0}
+                    max={dates.length - 1}
+                    onChange={value => setSelectedDate(value)}
                   />
-                </label>
+                </>
               )}
               <AnyChart id="nest-map" instance={anyChartMap} title="Карта гнёзд" height={600} />
             </div>

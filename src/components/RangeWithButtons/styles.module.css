@@ -1,0 +1,22 @@
+.rangeBlock {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+}
+
+.rangeBlock div {
+    margin:5px;
+}
+
+.rangeBlock button {
+    display: inline-block;
+    padding: 0;
+}
+
+.rangeInput {
+    flex: 1;
+}
+
+.rangeInput input {
+    width: 100%;
+}

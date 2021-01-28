@@ -32,7 +32,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint src/",
     "lint-fix": "eslint src/ --fix",
-    "prettier": "prettier --write \"src/**/*.js\"",
+    "prettier": "prettier --write \"src/**/*.(js|jsx)\"",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
