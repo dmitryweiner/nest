@@ -17,6 +17,7 @@ export function parseString(string, inputFormat) {
     x: 0,
     y: 0,
     date: null,
+    dateIndex: 0,
     distances: [],
     deltaDistances: [],
     neighborsCount: [0],
