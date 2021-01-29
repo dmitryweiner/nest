@@ -129,6 +129,12 @@ function App() {
           <h1>Nest</h1>
         </div>
         <div>
+          Исходная программа&nbsp;
+          <a href="https://github.com/dmitryweiner/nest/raw/main/nest.exe">Nest.exe</a>,&nbsp;
+          <a href="https://github.com/dmitryweiner/nest/raw/main/nest.pdf">статья</a> с объяснением
+          работы алгоритма.
+        </div>
+        <div>
           <h4>Выберите формат входных данных:</h4>
           <label>
             <input

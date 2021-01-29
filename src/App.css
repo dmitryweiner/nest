@@ -10,11 +10,11 @@
 
 @media screen and (max-width: 900px) {
   .wrapper {
-    width: 100%;
+    width: calc(100% - 20px);
   }
 
   .wrapper div {
-    margin-left: 10px;
+    margin: 0 10px;
   }
 }
 
