@@ -1,22 +1,38 @@
 import { nanoid } from 'nanoid';
 
-export const INPUT_FORMAT_COORDINATES = 1;
-export const INPUT_FORMAT_NUMBER = 2;
-export const INPUT_FORMAT_DATE = 3;
+export enum INPUT_FORMAT {
+  COORDINATES,
+  NUMBER,
+  DATE
+}
 
-export function parseFloat(string) {
+export interface Nest {
+  id: string;
+  title: string;
+  x: number;
+  y: number;
+  date: string;
+  dateIndex: number;
+  distances: number[][];
+  deltaDistances: number[][];
+  neighborsCount: number[];
+  r: number[];
+  isAccepted: boolean[];
+}
+
+export function parseFloat(string: string): number {
   const parsedString = string.replace(',', '.');
   return Number.parseFloat(parsedString);
 }
 
-export function parseString(string, inputFormat) {
+export function parseString(string: string, inputFormat: INPUT_FORMAT): Nest {
   const parts = string.split(/\s/);
-  const nest = {
+  const nest: Nest = {
     id: nanoid(),
     title: '',
     x: 0,
     y: 0,
-    date: null,
+    date: '',
     dateIndex: 0,
     distances: [],
     deltaDistances: [],
@@ -25,16 +41,16 @@ export function parseString(string, inputFormat) {
     isAccepted: [false]
   };
   switch (inputFormat) {
-    case INPUT_FORMAT_COORDINATES:
+    case INPUT_FORMAT.COORDINATES:
       nest.x = parseFloat(parts[0]);
       nest.y = parseFloat(parts[1]);
       break;
-    case INPUT_FORMAT_NUMBER:
+    case INPUT_FORMAT.NUMBER:
       nest.title = parts[0];
       nest.x = parseFloat(parts[1]);
       nest.y = parseFloat(parts[2]);
       break;
-    case INPUT_FORMAT_DATE:
+    case INPUT_FORMAT.DATE:
       nest.title = parts[0];
       nest.date = parts[1];
       nest.x = parseFloat(parts[2]);
@@ -45,7 +61,11 @@ export function parseString(string, inputFormat) {
   return nest;
 }
 
-export function parseNestData(nestDataText, inputFormat, withHeader) {
+export function parseNestData(
+  nestDataText: string,
+  inputFormat: INPUT_FORMAT,
+  withHeader: boolean
+): Nest[] {
   let result = [];
   const strings = nestDataText.split(/[\r\n]+/);
   let first = true;
@@ -67,7 +87,7 @@ export function parseNestData(nestDataText, inputFormat, withHeader) {
  * @param {Nest[]} nests все гнёзда
  * @returns {[number]}
  */
-export function getSortedDistancesToNeighbors(currentNest, nests) {
+export function getSortedDistancesToNeighbors(currentNest: Nest, nests: Nest[]): number[] {
   /*
     procedure Calc_date(list_in: TList);
     var
@@ -146,7 +166,7 @@ export function getSortedDistancesToNeighbors(currentNest, nests) {
  * @param {number[]} distances
  * @returns {number[]}
  */
-export function getDeltaDistancesToNeighbors(distances) {
+export function getDeltaDistancesToNeighbors(distances: number[]): number[] {
   /*
     procedure DeltaCalc_date(list_in: TList);
     var
@@ -213,7 +233,12 @@ export function getDeltaDistancesToNeighbors(distances) {
  * @param {number} [currentDayIndex]
  * @returns {boolean}
  */
-export function isNestAccepted(currentNest, nests, firstCount, currentDayIndex = 0) {
+export function isNestAccepted(
+  currentNest: Nest,
+  nests: Nest[],
+  firstCount: number,
+  currentDayIndex = 0
+) {
   /*
     procedure SelectNeibs(List_in: TList);
     var
@@ -295,7 +320,7 @@ export function isNestAccepted(currentNest, nests, firstCount, currentDayIndex =
  * @param {number} [currentDayIndex]
  * @returns {{r: number, neighborsCount: number}}
  */
-export function calculateR(nest, currentDayIndex = 0) {
+export function calculateR(nest: Nest, currentDayIndex = 0): { r: number; neighborsCount: number } {
   /*
       max := 0;
       i_max := 1;
@@ -348,7 +373,7 @@ export function calculateR(nest, currentDayIndex = 0) {
   return { r, neighborsCount: i_max + 1 };
 }
 
-export function calculateRforSpecificDay(nests, firstCount, dateIndex = 0) {
+export function calculateRforSpecificDay(nests: Nest[], firstCount: number, dateIndex = 0) {
   for (const currentNest of nests) {
     currentNest.isAccepted[dateIndex] = isNestAccepted(currentNest, nests, firstCount, dateIndex);
     if (currentNest.isAccepted[dateIndex]) {
@@ -359,7 +384,7 @@ export function calculateRforSpecificDay(nests, firstCount, dateIndex = 0) {
   }
 }
 
-function getResultForNest(nest, dayIndex = 0) {
+function getResultForNest(nest: Nest, dayIndex = 0) {
   let resultStr = `${nest.title ? nest.title : nest.id}\t`;
   if (nest.isAccepted[dayIndex]) {
     resultStr += `${nest.r[dayIndex] ? nest.r[dayIndex].toFixed(3) : ''}\t${
@@ -372,7 +397,7 @@ function getResultForNest(nest, dayIndex = 0) {
   return resultStr;
 }
 
-export function getResultByDate(nests, dateIndex) {
+export function getResultByDate(nests: Nest[], dateIndex: number) {
   const header = 'Number\tR\tNeib\n';
   let resultStr = '';
 
@@ -384,16 +409,16 @@ export function getResultByDate(nests, dateIndex) {
   return resultStr;
 }
 
-export function resultToString(nests, inputFormat) {
+export function resultToString(nests: Nest[], inputFormat: INPUT_FORMAT) {
   let resultStr = '';
 
   switch (inputFormat) {
-    case INPUT_FORMAT_NUMBER:
-    case INPUT_FORMAT_COORDINATES: {
+    case INPUT_FORMAT.NUMBER:
+    case INPUT_FORMAT.COORDINATES: {
       resultStr = getResultByDate(nests, 0);
       break;
     }
-    case INPUT_FORMAT_DATE: {
+    case INPUT_FORMAT.DATE: {
       resultStr += `Number\tR0\tRk\n`;
       for (const nest of nests) {
         const notNullR = nest.r.filter(r => r > 0);
@@ -417,7 +442,7 @@ export function resultToString(nests, inputFormat) {
  * @param {Nest[]} nests
  * @param {number} [currentDayIndex]
  */
-export function setDistancesAndDeltas(nests, currentDayIndex = 0) {
+export function setDistancesAndDeltas(nests: Nest[], currentDayIndex = 0) {
   for (const currentNest of nests) {
     const distances = getSortedDistancesToNeighbors(currentNest, nests);
     const deltaDistances = getDeltaDistancesToNeighbors(distances);
@@ -426,7 +451,7 @@ export function setDistancesAndDeltas(nests, currentDayIndex = 0) {
   }
 }
 
-function parseDate(dateStr) {
+function parseDate(dateStr: string) {
   const parts = dateStr.split('.');
   return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
 }
@@ -437,9 +462,15 @@ function parseDate(dateStr) {
  * @param {Nest[]} nests
  * @return {string[]}
  */
-export function getAllDatesSorted(nests) {
+export function getAllDatesSorted(nests: Nest[]): string[] {
   const result = [...new Set(nests.map(nest => nest.date))];
-  result.sort((a, b) => parseDate(a) - parseDate(b));
+  result.sort((a: string, b: string) => {
+    const dateA = parseDate(a);
+    const dateB = parseDate(b);
+    if (dateA > dateB) return 1;
+    if (dateA < dateB) return -1;
+    return 0;
+  });
   return result;
 }
 
@@ -449,7 +480,7 @@ export function getAllDatesSorted(nests) {
  * @param {Nest[]} nests
  * @param {string[]} dates
  */
-export function setDateIndex(nests, dates) {
+export function setDateIndex(nests: Nest[], dates: string[]) {
   for (const currentNest of nests) {
     currentNest.dateIndex = dates.indexOf(currentNest.date);
   }
@@ -462,6 +493,6 @@ export function setDateIndex(nests, dates) {
  * @param {number} dateIndex
  * @return {Nest[]}
  */
-export function getAllNestsForSpecificDay(nests, dateIndex) {
+export function getAllNestsForSpecificDay(nests: Nest[], dateIndex: number) {
   return nests.filter(nest => nest.dateIndex <= dateIndex);
 }

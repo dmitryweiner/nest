@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+// @ts-ignore
 import AnyChart from 'anychart-react';
+// @ts-ignore
 import anychart from 'anychart';
 import * as utils from './utils';
+import { INPUT_FORMAT, Nest } from './utils';
 import nestWithNumbersText from './demo-data/coords-with-numbers';
 import nestWithDatesText from './demo-data/coords-with-dates';
 import './App.css';
@@ -9,10 +12,10 @@ import RangeWithButtons from './components/RangeWithButtons';
 
 function App() {
   const [nestDataText, setNestDataText] = useState('');
-  const [nestData, setNestData] = useState([]);
-  const [dates, setDates] = useState([]);
+  const [nestData, setNestData] = useState<Nest[]>([]);
+  const [dates, setDates] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(0);
-  const [inputFormat, setInputFormat] = useState(utils.INPUT_FORMAT_NUMBER);
+  const [inputFormat, setInputFormat] = useState(utils.INPUT_FORMAT.NUMBER);
   const [withHeader, setWithHeader] = useState(true);
   const [firstCount, setFirstCount] = useState(3);
   const [selectedNest, setSelectedNest] = useState(0);
@@ -25,11 +28,11 @@ function App() {
   useEffect(() => {
     const nestData = utils.parseNestData(nestDataText, inputFormat, withHeader);
     switch (inputFormat) {
-      case utils.INPUT_FORMAT_NUMBER:
-      case utils.INPUT_FORMAT_COORDINATES:
+      case utils.INPUT_FORMAT.NUMBER:
+      case utils.INPUT_FORMAT.COORDINATES:
         utils.setDistancesAndDeltas(nestData);
         break;
-      case utils.INPUT_FORMAT_DATE: {
+      case utils.INPUT_FORMAT.DATE: {
         const dates = utils.getAllDatesSorted(nestData);
         setDates(dates);
         utils.setDateIndex(nestData, dates);
@@ -57,11 +60,11 @@ function App() {
 
   function calculate() {
     switch (inputFormat) {
-      case utils.INPUT_FORMAT_NUMBER:
-      case utils.INPUT_FORMAT_COORDINATES:
+      case utils.INPUT_FORMAT.NUMBER:
+      case utils.INPUT_FORMAT.COORDINATES:
         utils.calculateRforSpecificDay(nestData, firstCount);
         break;
-      case utils.INPUT_FORMAT_DATE: {
+      case utils.INPUT_FORMAT.DATE: {
         for (let currentDateIndex = 0; currentDateIndex < dates.length; currentDateIndex++) {
           utils.calculateRforSpecificDay(
             utils.getAllNestsForSpecificDay(nestData, currentDateIndex),
@@ -76,7 +79,7 @@ function App() {
     setNestData([...nestData]);
   }
 
-  function setDistancesGraphData(selectedNest, selectedDate = 0) {
+  function setDistancesGraphData(selectedNest: number, selectedDate = 0) {
     if (!nestData[selectedNest] || !nestData[selectedNest].distances[selectedDate]) return;
 
     const chartData = [];
@@ -94,7 +97,7 @@ function App() {
     anyChartDistances.line(seriesData_2);
   }
 
-  function setMapGraphData(nests, selectedDate = 0) {
+  function setMapGraphData(nests: Nest[], selectedDate = 0) {
     if (!nests || !nests.length) return;
 
     const accepted = [],
@@ -110,14 +113,14 @@ function App() {
     anyChartMap.bubble(notAccepted);
   }
 
-  function setTestData(inputFormat) {
-    if (inputFormat === utils.INPUT_FORMAT_NUMBER) {
+  function setTestData(inputFormat: INPUT_FORMAT) {
+    if (inputFormat === utils.INPUT_FORMAT.NUMBER) {
       setNestDataText(nestWithNumbersText);
-      setInputFormat(utils.INPUT_FORMAT_NUMBER);
+      setInputFormat(utils.INPUT_FORMAT.NUMBER);
       setWithHeader(true);
-    } else if (inputFormat === utils.INPUT_FORMAT_DATE) {
+    } else if (inputFormat === utils.INPUT_FORMAT.DATE) {
       setNestDataText(nestWithDatesText);
-      setInputFormat(utils.INPUT_FORMAT_DATE);
+      setInputFormat(utils.INPUT_FORMAT.DATE);
       setWithHeader(false);
     }
   }
@@ -140,8 +143,8 @@ function App() {
             <input
               type="radio"
               name="inputFormat"
-              checked={inputFormat === utils.INPUT_FORMAT_COORDINATES}
-              onChange={e => e.target.checked && setInputFormat(utils.INPUT_FORMAT_COORDINATES)}
+              checked={inputFormat === utils.INPUT_FORMAT.COORDINATES}
+              onChange={e => e.target.checked && setInputFormat(utils.INPUT_FORMAT.COORDINATES)}
             />
             X Y
           </label>
@@ -151,8 +154,8 @@ function App() {
             <input
               type="radio"
               name="inputFormat"
-              checked={inputFormat === utils.INPUT_FORMAT_NUMBER}
-              onChange={e => e.target.checked && setInputFormat(utils.INPUT_FORMAT_NUMBER)}
+              checked={inputFormat === utils.INPUT_FORMAT.NUMBER}
+              onChange={e => e.target.checked && setInputFormat(utils.INPUT_FORMAT.NUMBER)}
             />
             &lt;Метка гнезда&gt; X Y
           </label>
@@ -162,8 +165,8 @@ function App() {
             <input
               type="radio"
               name="inputFormat"
-              checked={inputFormat === utils.INPUT_FORMAT_DATE}
-              onChange={e => e.target.checked && setInputFormat(utils.INPUT_FORMAT_DATE)}
+              checked={inputFormat === utils.INPUT_FORMAT.DATE}
+              onChange={e => e.target.checked && setInputFormat(utils.INPUT_FORMAT.DATE)}
             />
             &lt;Метка гнезда&gt; &lt;Дата основания&gt; X Y
           </label>
@@ -182,8 +185,8 @@ function App() {
           <h4>Скопируйте сюда координаты гнёзд:</h4>
           <p>
             Загрузить тестовые данные
-            <button onClick={() => setTestData(utils.INPUT_FORMAT_NUMBER)}>с номерами</button>
-            <button onClick={() => setTestData(utils.INPUT_FORMAT_DATE)}>с датами</button>
+            <button onClick={() => setTestData(utils.INPUT_FORMAT.NUMBER)}>с номерами</button>
+            <button onClick={() => setTestData(utils.INPUT_FORMAT.DATE)}>с датами</button>
           </p>
           <div className="input-coordinates-block">
             <div className="input-textarea">
@@ -210,7 +213,7 @@ function App() {
         <div>
           <label>
             Брать первых
-            <select value={firstCount} onChange={e => setFirstCount(e.target.value)}>
+            <select value={firstCount} onChange={e => setFirstCount(Number(e.target.value))}>
               <option>1</option>
               <option>2</option>
               <option>3</option>
@@ -223,14 +226,14 @@ function App() {
         </div>
         <div className="distances">
           <h4>Расстояния до соседей:</h4>
-          {inputFormat === utils.INPUT_FORMAT_DATE && (
+          {inputFormat === utils.INPUT_FORMAT.DATE && (
             <>
               <p>Текущий день {dates[selectedDate]}</p>
               <RangeWithButtons
                 value={selectedDate}
                 min={0}
                 max={dates.length - 1}
-                onChange={value => setSelectedDate(value)}
+                onChange={(value: number) => setSelectedDate(value)}
               />
             </>
           )}
@@ -239,7 +242,7 @@ function App() {
             value={selectedNest}
             min={0}
             max={nestData.length - 1}
-            onChange={value => setSelectedNest(value)}
+            onChange={(value: number) => setSelectedNest(value)}
           />
           <AnyChart
             id="distances"
@@ -278,14 +281,14 @@ function App() {
               />
             </div>
             <div className="results-graph">
-              {inputFormat === utils.INPUT_FORMAT_DATE && (
+              {inputFormat === utils.INPUT_FORMAT.DATE && (
                 <>
                   <p>Текущий день {dates[selectedDate]}</p>
                   <RangeWithButtons
                     value={selectedDate}
                     min={0}
                     max={dates.length - 1}
-                    onChange={value => setSelectedDate(value)}
+                    onChange={(value: number) => setSelectedDate(value)}
                   />
                 </>
               )}

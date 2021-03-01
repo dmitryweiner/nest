@@ -1,7 +1,14 @@
 import React from 'react';
 import styles from './styles.module.css';
 
-export default function RangeWithButtons({ value, min, max, onChange }) {
+type RangeWithButtonsProps = {
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+};
+
+export default function RangeWithButtons({ value, min, max, onChange }: RangeWithButtonsProps) {
   return (
     <div className={styles.rangeBlock}>
       <div>

@@ -4,7 +4,7 @@ import * as utils from './utils';
 
 describe('Calculation with numbers', () => {
   it('should parse input data', () => {
-    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT.NUMBER, true);
     expect(nestData.length).toEqual(236);
     expect(nestData[0]).toHaveProperty('title');
     expect(nestData[0].title).toEqual('1');
@@ -22,7 +22,7 @@ describe('Calculation with numbers', () => {
   });
 
   it('should calculate distances and delta', () => {
-    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT.NUMBER, true);
     const distances = utils.getSortedDistancesToNeighbors(nestData[0], nestData);
     const deltaDistances = utils.getDeltaDistancesToNeighbors(distances);
 
@@ -37,7 +37,7 @@ describe('Calculation with numbers', () => {
   });
 
   it('should test whether nest accepted or not', () => {
-    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT.NUMBER, true);
     utils.setDistancesAndDeltas(nestData);
 
     let isAccepted = utils.isNestAccepted(nestData[0], nestData, 3);
@@ -47,7 +47,7 @@ describe('Calculation with numbers', () => {
   });
 
   it('should calculate R and number of neighbors', () => {
-    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT_NUMBER, true);
+    const nestData = utils.parseNestData(nestWithNumbersText, utils.INPUT_FORMAT.NUMBER, true);
     utils.setDistancesAndDeltas(nestData);
 
     let result = utils.calculateR(nestData[0]);
@@ -62,7 +62,7 @@ describe('Calculation with numbers', () => {
 
 describe('Calculation with dates', () => {
   it('should parse input data', () => {
-    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT_DATE, false);
+    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT.DATE, false);
     const dates = utils.getAllDatesSorted(nestData);
     expect(dates.length).toEqual(16);
     expect(dates[0]).toEqual('18.05.17');
@@ -70,7 +70,7 @@ describe('Calculation with dates', () => {
   });
 
   it('should set proper date index', () => {
-    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT_DATE, false);
+    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT.DATE, false);
     const dates = utils.getAllDatesSorted(nestData);
     utils.setDateIndex(nestData, dates);
     expect(nestData[19].dateIndex).toEqual(0);
@@ -78,7 +78,7 @@ describe('Calculation with dates', () => {
   });
 
   it('should filter nests by date index', () => {
-    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT_DATE, false);
+    const nestData = utils.parseNestData(nestWithDatesText, utils.INPUT_FORMAT.DATE, false);
     const dates = utils.getAllDatesSorted(nestData);
     utils.setDateIndex(nestData, dates);
 
